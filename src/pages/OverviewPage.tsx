@@ -60,12 +60,15 @@ function KpiCard({
   kpi,
   search,
   comparisonLabel,
+  hasComparison,
 }: {
   name: string;
   kpi: KpiValue;
   search: string;
   comparisonLabel: string;
+  hasComparison: boolean;
 }) {
+  const isRate = name.endsWith("Rate") || name.endsWith("Pct");
   const customerKpis = ["customers", "newBuyers", "recurringBuyers"];
   const productKpis = ["items", "skus", "itemsPerOrder"];
   const pathname = customerKpis.includes(name)
@@ -86,11 +89,17 @@ function KpiCard({
         <span>{KPI_LABELS[name] || name}</span>
         <strong>{formatKpi(name, kpi.value)}</strong>
         <small className={kpi.isPositive ? "positive" : "negative"}>
-          {kpi.percentageChange == null
+          {!hasComparison
             ? "Sem base de comparação"
-            : `${kpi.percentageChange >= 0 ? "+" : ""}${number.format(
-                kpi.percentageChange
-              )}%${comparisonLabel}`}
+            : isRate
+            ? `${kpi.absoluteChange >= 0 ? "+" : ""}${number.format(
+                kpi.absoluteChange
+              )} p.p.${comparisonLabel}`
+            : kpi.percentageChange == null
+              ? "Sem base de comparação"
+              : `${kpi.percentageChange >= 0 ? "+" : ""}${number.format(
+                  kpi.percentageChange
+                )}%${comparisonLabel}`}
         </small>
         <p>{kpi.definition}</p>
       </article>
@@ -140,6 +149,7 @@ export function OverviewPage({ filters }: { filters: AnalyticsFilters }) {
             kpi={kpi}
             search={location.search}
             comparisonLabel={comparisonSuffix(overview.data.comparison)}
+            hasComparison={Boolean(overview.data.comparison)}
           />
         ))}
       </section>

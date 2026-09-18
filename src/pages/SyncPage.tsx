@@ -8,6 +8,7 @@ const dateTime = (value: string | null) =>
 
 export function SyncPage() {
   const [page, setPage] = useState(1);
+  const [feedback, setFeedback] = useState("");
   const queryClient = useQueryClient();
   const status = useQuery({
     queryKey: ["sync-status"],
@@ -25,7 +26,19 @@ export function SyncPage() {
   const sync = useMutation({
     mutationFn: ({ resource, full }: { resource: string; full: boolean }) =>
       api.sync(resource, full),
-    onSuccess: async () => {
+    onMutate: ({ resource }) => {
+      setFeedback(
+        resource === "all"
+          ? "Solicitando a sincronização completa…"
+          : "Solicitando a atualização de pedidos e envios…"
+      );
+    },
+    onSuccess: async (_data, variables) => {
+      setFeedback(
+        variables.resource === "all"
+          ? "Sincronizar tudo foi iniciado. Acompanhe o recurso em andamento abaixo."
+          : "Sincronização de pedidos e envios iniciada."
+      );
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["sync-status"] }),
         queryClient.invalidateQueries({ queryKey: ["sync-runs"] }),
@@ -34,14 +47,18 @@ export function SyncPage() {
   });
   const cancel = useMutation({
     mutationFn: () => api.cancelSync(),
+    onMutate: () => setFeedback("Solicitando a interrupção…"),
     onSuccess: async () => {
+      setFeedback("Interrupção solicitada com sucesso.");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["sync-status"] }),
         queryClient.invalidateQueries({ queryKey: ["sync-runs"] }),
       ]);
     },
   });
-  const running = status.data?.some((item) => item.status === "running") || sync.isPending;
+  const runningOnServer = status.data?.some((item) => item.status === "running") || false;
+  const running = runningOnServer || sync.isPending;
+  const activeResource = sync.isPending ? sync.variables?.resource : null;
 
   return (
     <div className="page-stack">
@@ -57,30 +74,47 @@ export function SyncPage() {
               estiver limitada.
             </p>
           </div>
-          <div className="table-actions">
+          <fieldset className="sync-actions">
+            <legend className="sr-only">Ações de sincronização</legend>
             <button
               type="button"
+              className="sync-action secondary"
               disabled={running}
+              aria-busy={activeResource === "orders"}
               onClick={() => sync.mutate({ resource: "orders", full: false })}
             >
-              Sincronizar pedidos
+              {activeResource === "orders" && <span className="button-spinner" aria-hidden="true" />}
+              <span>
+                <strong>{activeResource === "orders" ? "Iniciando…" : "Sincronizar pedidos"}</strong>
+                <small>Atualiza pedidos, itens e envios</small>
+              </span>
             </button>
             <button
               type="button"
+              className="sync-action primary"
               disabled={running}
+              aria-busy={activeResource === "all"}
               onClick={() => sync.mutate({ resource: "all", full: true })}
             >
-              Primeira carga completa
+              {activeResource === "all" && <span className="button-spinner" aria-hidden="true" />}
+              <span>
+                <strong>{activeResource === "all" ? "Iniciando tudo…" : "Sincronizar tudo"}</strong>
+                <small>Catálogo, clientes, logística e pedidos</small>
+              </span>
             </button>
             <button
               type="button"
-              disabled={cancel.isPending}
+              className="sync-action danger compact"
+              disabled={!runningOnServer || cancel.isPending}
+              aria-busy={cancel.isPending}
               onClick={() => cancel.mutate()}
             >
-              {cancel.isPending ? "Interrompendo…" : "Interromper"}
+              {cancel.isPending && <span className="button-spinner" aria-hidden="true" />}
+              <span><strong>{cancel.isPending ? "Interrompendo…" : "Interromper"}</strong></span>
             </button>
-          </div>
+          </fieldset>
         </div>
+        {feedback && <div className="sync-feedback" role="status">{feedback}</div>}
         {sync.error && <div className="state-panel error">{sync.error.message}</div>}
         {cancel.error && <div className="state-panel error">{cancel.error.message}</div>}
         <QueryState

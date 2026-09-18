@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Suspense } from "react";
 import {
   Link,
   Navigate,
@@ -9,8 +9,8 @@ import {
   useLocation,
 } from "react-router-dom";
 import { api } from "../api";
-import { GlobalFilterBar } from "../components/filters/GlobalFilterBar";
 import { QueryState } from "../components/feedback/QueryState";
+import { GlobalFilterBar } from "../components/filters/GlobalFilterBar";
 import { CrmApp } from "../crm/CrmApp";
 import { useAnalyticsFilters } from "../hooks/useAnalyticsFilters";
 import { DataQualityPage } from "../pages/DataQualityPage";
@@ -42,6 +42,9 @@ const SellersPage = lazyPage(() =>
 const InventoryPage = lazyPage(() =>
   import("../pages/InventoryPage").then((module) => ({ default: module.InventoryPage }))
 );
+const LogisticsPage = lazyPage(() =>
+  import("../pages/LogisticsPage").then((module) => ({ default: module.LogisticsPage }))
+);
 const InsightsPage = lazyPage(() =>
   import("../pages/InsightsPage").then((module) => ({ default: module.InsightsPage }))
 );
@@ -66,6 +69,7 @@ const navigation: {
   { path: "/retention", label: "Retenção e LTV", icon: "↗" },
   { path: "/sellers", label: "Vendedores", icon: "♙" },
   { path: "/inventory", label: "Estoque", icon: "▤" },
+  { path: "/logistics", label: "Logística e envios", icon: "🚚" },
   { path: "/insights", label: "Geografia e mix", icon: "◫" },
   { path: "/custom-views", label: "Visões personalizadas", icon: "✧" },
   { path: "/data-quality", label: "Qualidade dos dados", icon: "✓" },
@@ -115,6 +119,7 @@ function BiApp() {
     "/retention",
     "/sellers",
     "/inventory",
+    "/logistics",
     "/insights",
   ].includes(location.pathname);
   const periodLabel =
@@ -230,6 +235,7 @@ function BiApp() {
               />
               <Route path="/sellers" element={<SellersPage filters={filters} />} />
               <Route path="/inventory" element={<InventoryPage filters={filters} />} />
+              <Route path="/logistics" element={<LogisticsPage filters={filters} />} />
               <Route path="/insights" element={<InsightsPage filters={filters} />} />
               <Route path="/custom-views" element={<CustomViewsPage />} />
               <Route path="/data-quality" element={<QualityRoute />} />

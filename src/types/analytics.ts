@@ -60,6 +60,63 @@ export type OverviewResponse = {
   metadata: AnalyticsMetadata;
 };
 
+export type LogisticsShipment = {
+  id: string;
+  number: string;
+  issuedAt: string | null;
+  customerName: string | null;
+  orderStatus: string;
+  shipmentStatus: "awaiting_shipment" | "shipped" | "delivered" | "not_informed";
+  shippingMethod: string | null;
+  shippingCost: number | null;
+  trackingCode: string | null;
+  trackingUrl: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  estimatedDelivery: string | null;
+  integrator: string | null;
+  distributionCenterId: string | null;
+  city: string | null;
+  state: string | null;
+};
+
+export type LogisticsResponse = {
+  summary: {
+    orders: number;
+    withShipping: number;
+    awaitingShipment: number;
+    shipped: number;
+    delivered: number;
+    notInformed: number;
+    shippingCoveragePct: number;
+    trackingCoveragePct: number;
+    deliveryRatePct: number;
+    totalShippingCost: number;
+    averageShippingCost: number;
+    averageFulfillmentDays: number | null;
+    averageDeliveryDays: number | null;
+  };
+  byStatus: { status: string; orders: number; sharePct: number }[];
+  byMethod: {
+    method: string;
+    orders: number;
+    sharePct: number;
+    delivered: number;
+    deliveryRatePct: number;
+    shippingCost: number;
+    averageShippingCost: number;
+  }[];
+  items: LogisticsShipment[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  sort: string;
+  order: SortOrder;
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+};
+
 export type TimeseriesPoint = {
   period: string;
   revenue: number;

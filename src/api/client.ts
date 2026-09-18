@@ -8,6 +8,7 @@ import type {
   CustomerDetailResponse,
   FilterOptionsResponse,
   GeographyResponse,
+  LogisticsResponse,
   OrderAnalyticsRow,
   OrderDetailResponse,
   OverviewResponse,
@@ -57,6 +58,76 @@ const overviewSchema = z.object({
   kpis: z.record(z.string(), kpiSchema),
   appliedFilters: z.record(z.string(), z.unknown()),
   comparison: comparisonSchema,
+  metadata: metadataSchema,
+});
+
+const logisticsSchema = z.object({
+  summary: z.object({
+    orders: z.number(),
+    withShipping: z.number(),
+    awaitingShipment: z.number(),
+    shipped: z.number(),
+    delivered: z.number(),
+    notInformed: z.number(),
+    shippingCoveragePct: z.coerce.number(),
+    trackingCoveragePct: z.coerce.number(),
+    deliveryRatePct: z.coerce.number(),
+    totalShippingCost: z.coerce.number(),
+    averageShippingCost: z.coerce.number(),
+    averageFulfillmentDays: z.coerce.number().nullable(),
+    averageDeliveryDays: z.coerce.number().nullable(),
+  }),
+  byStatus: z.array(
+    z.object({
+      status: z.string(),
+      orders: z.number(),
+      sharePct: z.coerce.number(),
+    })
+  ),
+  byMethod: z.array(
+    z.object({
+      method: z.string(),
+      orders: z.number(),
+      sharePct: z.coerce.number(),
+      delivered: z.number(),
+      deliveryRatePct: z.coerce.number(),
+      shippingCost: z.coerce.number().nullable(),
+      averageShippingCost: z.coerce.number(),
+    })
+  ),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      number: z.string(),
+      issuedAt: z.string().nullable(),
+      customerName: z.string().nullable(),
+      orderStatus: z.string(),
+      shipmentStatus: z.enum([
+        "awaiting_shipment",
+        "shipped",
+        "delivered",
+        "not_informed",
+      ]),
+      shippingMethod: z.string().nullable(),
+      shippingCost: z.coerce.number(),
+      trackingCode: z.string().nullable(),
+      trackingUrl: z.string().nullable(),
+      shippedAt: z.string().nullable(),
+      deliveredAt: z.string().nullable(),
+      estimatedDelivery: z.string().nullable(),
+      integrator: z.string().nullable(),
+      distributionCenterId: z.string().nullable(),
+      city: z.string().nullable(),
+      state: z.string().nullable(),
+    })
+  ),
+  page: z.number(),
+  pageSize: z.number(),
+  totalItems: z.number(),
+  totalPages: z.number(),
+  sort: z.string(),
+  order: z.enum(["asc", "desc"]),
+  appliedFilters: z.record(z.string(), z.unknown()),
   metadata: metadataSchema,
 });
 
@@ -525,6 +596,17 @@ export const analyticsApi = {
       `/api/v1/analytics/overview?${paramsFromFilters(filters)}`,
       overviewSchema
     ) as Promise<OverviewResponse>;
+  },
+  logistics(
+    filters: AnalyticsFilters,
+    options: PageOptions & { status?: string }
+  ): Promise<LogisticsResponse> {
+    const params = pageParams(filters, options);
+    if (options.status) params.set("status", options.status);
+    return request(
+      `/api/v1/analytics/logistics?${params}`,
+      logisticsSchema
+    ) as Promise<LogisticsResponse>;
   },
   timeseries(filters: AnalyticsFilters): Promise<TimeseriesResponse> {
     return request(
