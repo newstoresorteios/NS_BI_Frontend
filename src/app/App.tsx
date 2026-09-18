@@ -1,0 +1,282 @@
+import { Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
+import {
+  Link,
+  Navigate,
+  NavLink,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
+import { api } from "../api";
+import { useAuth } from "../auth/AuthProvider";
+import { GlobalFilterBar } from "../components/filters/GlobalFilterBar";
+import { QueryState } from "../components/feedback/QueryState";
+import { CrmApp } from "../crm/CrmApp";
+import { useAnalyticsFilters } from "../hooks/useAnalyticsFilters";
+import { DataQualityPage } from "../pages/DataQualityPage";
+import { HomeGate } from "../pages/HomeGate";
+import { LoginPage } from "../pages/LoginPage";
+import { RetailApp } from "../retail/RetailApp";
+import { AppearanceSelect } from "../theme/AppearanceSelect";
+import { lazyPage } from "./lazyPage";
+
+const LegacyDashboard = lazyPage(() =>
+  import("../main").then((module) => ({ default: module.LegacyDashboard }))
+);
+const OverviewPage = lazyPage(() =>
+  import("../pages/OverviewPage").then((module) => ({ default: module.OverviewPage }))
+);
+const OrdersPage = lazyPage(() =>
+  import("../pages/OrdersPage").then((module) => ({ default: module.OrdersPage }))
+);
+const ProductsPage = lazyPage(() =>
+  import("../pages/ProductsPage").then((module) => ({ default: module.ProductsPage }))
+);
+const CustomersPage = lazyPage(() =>
+  import("../pages/CustomersPage").then((module) => ({ default: module.CustomersPage }))
+);
+const RetentionPage = lazyPage(() =>
+  import("../pages/RetentionPage").then((module) => ({ default: module.RetentionPage }))
+);
+const SellersPage = lazyPage(() =>
+  import("../pages/SellersPage").then((module) => ({ default: module.SellersPage }))
+);
+const InventoryPage = lazyPage(() =>
+  import("../pages/InventoryPage").then((module) => ({ default: module.InventoryPage }))
+);
+const InsightsPage = lazyPage(() =>
+  import("../pages/InsightsPage").then((module) => ({ default: module.InsightsPage }))
+);
+const CustomViewsPage = lazyPage(() =>
+  import("../pages/CustomViewsPage").then((module) => ({
+    default: module.CustomViewsPage,
+  }))
+);
+const SyncPage = lazyPage(() =>
+  import("../pages/SyncPage").then((module) => ({ default: module.SyncPage }))
+);
+
+const navigation: {
+  path: string;
+  label: string;
+  icon: string;
+  adminOnly?: boolean;
+}[] = [
+  { path: "/overview", label: "Visão geral", icon: "⌂" },
+  { path: "/orders", label: "Pedidos", icon: "▣" },
+  { path: "/products", label: "Produtos", icon: "◇" },
+  { path: "/customers", label: "Clientes", icon: "◎" },
+  { path: "/retention", label: "Retenção e LTV", icon: "↗" },
+  { path: "/sellers", label: "Vendedores", icon: "♙" },
+  { path: "/inventory", label: "Estoque", icon: "▤" },
+  { path: "/insights", label: "Geografia e mix", icon: "◫" },
+  { path: "/custom-views", label: "Visões personalizadas", icon: "✧" },
+  { path: "/data-quality", label: "Qualidade dos dados", icon: "✓", adminOnly: true },
+  { path: "/sync", label: "Sincronização", icon: "↻", adminOnly: true },
+];
+
+function QualityRoute() {
+  const query = useQuery({
+    queryKey: ["data-quality"],
+    queryFn: api.dataQuality,
+  });
+  return (
+    <DataQualityPage
+      data={query.data || null}
+      loading={query.isLoading || query.isFetching}
+      error={query.error instanceof Error ? query.error.message : ""}
+      onRetry={() => void query.refetch()}
+    />
+  );
+}
+
+export function App() {
+  const location = useLocation();
+  if (location.pathname === "/" || location.pathname === "/home") {
+    return <HomeGate />;
+  }
+  if (location.pathname.startsWith("/crm")) {
+    return <CrmApp />;
+  }
+  if (location.pathname.startsWith("/analise-varejo")) {
+    return <RetailApp />;
+  }
+  return <BiApp />;
+}
+
+function BiApp() {
+  const location = useLocation();
+  const { user, loading, signOut } = useAuth();
+  const syncStatus = useQuery({
+    queryKey: ["sync-status"],
+    queryFn: api.syncStatus,
+    enabled: Boolean(user),
+    refetchInterval: (query) =>
+      query.state.data?.some((item) => item.status === "running") ? 5_000 : false,
+  });
+  const { filters, updateFilters, clearFilters, activeCount } = useAnalyticsFilters();
+  const isAnalyticsRoute = [
+    "/overview",
+    "/orders",
+    "/products",
+    "/customers",
+    "/retention",
+    "/sellers",
+    "/inventory",
+    "/insights",
+  ].includes(location.pathname);
+  const periodLabel =
+    filters.dateFrom || filters.dateTo
+      ? `${filters.dateFrom || "início"} até ${filters.dateTo || "hoje"}`
+      : filters.period === "all"
+        ? "Todo o histórico"
+        : filters.period.toUpperCase();
+
+  if (loading) return <QueryState loading error={null} />;
+  if (!user) return <LoginPage />;
+
+  if (location.pathname === "/legacy") {
+    return (
+      <Suspense fallback={<QueryState loading error={null} />}>
+        <LegacyDashboard />
+      </Suspense>
+    );
+  }
+
+  return (
+    <div className="new-app">
+      <a className="skip-link" href="#main-content">
+        Ir para o conteúdo
+      </a>
+      <aside className="app-sidebar">
+        <div className="brand-block">
+          <strong>NS</strong>
+          <span>Business Intelligence</span>
+        </div>
+        <nav aria-label="Navegação principal">
+          {navigation
+            .filter((item) => !item.adminOnly || user.role === "admin")
+            .map((item) => (
+            <NavLink
+              key={item.path}
+              to={{ pathname: item.path, search: location.search }}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              <i>{item.icon}</i>
+              {item.label}
+            </NavLink>
+            ))}
+        </nav>
+      </aside>
+      <main id="main-content" className="app-content">
+        <header className="app-header">
+          <div>
+            <small>RAIO X COMERCIAL E OPERACIONAL</small>
+            <h1>
+              {navigation.find((item) => item.path === location.pathname)?.label ||
+                "Business Intelligence"}
+            </h1>
+            {isAnalyticsRoute && <p>Período atual: {periodLabel}</p>}
+          </div>
+          <div className="user-menu">
+            <AppearanceSelect />
+            <span>
+              {user.username} · {user.role}
+            </span>
+            <Link to="/">Início</Link>
+            <button type="button" onClick={() => void signOut()}>
+              Sair
+            </button>
+          </div>
+        </header>
+        {isAnalyticsRoute && (
+          <GlobalFilterBar
+            filters={filters}
+            activeCount={activeCount}
+            onChange={updateFilters}
+            onClear={clearFilters}
+          />
+        )}
+        {syncStatus.data?.some((item) => item.status === "running") && (
+          <div className="sync-banner" role="status">
+            Sincronização em andamento. Os indicadores podem mudar até a conclusão.
+          </div>
+        )}
+        <div className="route-content">
+          <Suspense fallback={<QueryState loading error={null} />}>
+            <Routes>
+              <Route path="/overview" element={<OverviewPage filters={filters} />} />
+              <Route path="/orders" element={<OrdersPage filters={filters} />} />
+              <Route path="/products" element={<ProductsPage filters={filters} />} />
+              <Route
+                path="/customers"
+                element={
+                  <CustomersPage
+                    filters={filters}
+                    onExcludeCustomer={(id: string) =>
+                      updateFilters({
+                        excludedCustomerIds: filters.excludedCustomerIds.includes(id)
+                          ? filters.excludedCustomerIds
+                          : [...filters.excludedCustomerIds, id],
+                        customerIds: filters.customerIds.filter((value) => value !== id),
+                      })
+                    }
+                    onRestoreCustomer={(id: string) =>
+                      updateFilters({
+                        excludedCustomerIds: filters.excludedCustomerIds.filter(
+                          (value) => value !== id,
+                        ),
+                      })
+                    }
+                  />
+                }
+              />
+              <Route
+                path="/retention"
+                element={
+                  <RetentionPage
+                    filters={filters}
+                    onUseAllHistory={() =>
+                      updateFilters({
+                        period: "all",
+                        dateFrom: undefined,
+                        dateTo: undefined,
+                        granularity: "month",
+                      })
+                    }
+                  />
+                }
+              />
+              <Route path="/sellers" element={<SellersPage filters={filters} />} />
+              <Route path="/inventory" element={<InventoryPage filters={filters} />} />
+              <Route path="/insights" element={<InsightsPage filters={filters} />} />
+              <Route path="/custom-views" element={<CustomViewsPage />} />
+              <Route
+                path="/data-quality"
+                element={
+                  user.role === "admin" ? (
+                    <QualityRoute />
+                  ) : (
+                    <Navigate to="/overview" replace />
+                  )
+                }
+              />
+              <Route
+                path="/sync"
+                element={
+                  user.role === "admin" ? (
+                    <SyncPage />
+                  ) : (
+                    <Navigate to="/overview" replace />
+                  )
+                }
+              />
+              <Route path="*" element={<Navigate to="/overview" replace />} />
+            </Routes>
+          </Suspense>
+        </div>
+      </main>
+    </div>
+  );
+}

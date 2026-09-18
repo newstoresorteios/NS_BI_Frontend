@@ -1,0 +1,37 @@
+import { Link } from "react-router-dom";
+import { AppearanceSelect } from "../theme/AppearanceSelect";
+
+export function HomeGate() {
+  return (
+    <main className="home-gate">
+      <div className="home-gate-head">
+        <span>NEW STORE</span>
+        <h1>Escolha o ambiente</h1>
+        <p>
+          CRM e Analise Varejo sao abertos para o time. O BI permanece restrito a administracao.
+        </p>
+        <AppearanceSelect />
+      </div>
+      <div className="home-gate-grid">
+        <article>
+          <small>Equipe comercial</small>
+          <h2>CRM de Vendas</h2>
+          <p>Fila de leads, Top 20, historico de compras e acompanhamento de atendimentos - sem login.</p>
+          <Link to="/crm">Abrir CRM</Link>
+        </article>
+        <article>
+          <small>Varejo B2C</small>
+          <h2>Analise Varejo</h2>
+          <p>Top 100 produtos mais indicados para marketplaces e site proprio, com margem e canal.</p>
+          <Link to="/analise-varejo">Abrir Analise Varejo</Link>
+        </article>
+        <article>
+          <small>Acesso restrito</small>
+          <h2>Business Intelligence</h2>
+          <p>Indicadores, qualidade de dados e sincronizacao Tray. Exige usuario e senha.</p>
+          <Link to="/overview">Entrar no BI</Link>
+        </article>
+      </div>
+    </main>
+  );
+}

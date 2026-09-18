@@ -1,0 +1,554 @@
+export type Period = "7d" | "30d" | "90d" | "365d" | "ytd" | "all";
+export type Granularity = "day" | "week" | "month" | "quarter" | "year";
+export type SortOrder = "asc" | "desc";
+export type AppliedFilters = Record<string, unknown>;
+
+export type AnalyticsFilters = {
+  dateFrom?: string;
+  dateTo?: string;
+  period: Period;
+  granularity: Granularity;
+  statuses: string[];
+  sellerIds: string[];
+  customerIds: string[];
+  excludedCustomerIds: string[];
+  productIds: string[];
+  categoryIds: string[];
+  states: string[];
+  cities: string[];
+  segmentIds: string[];
+  orderTypeIds: string[];
+  paymentConditionIds: string[];
+  minValue?: number;
+  maxValue?: number;
+  activeOnly: boolean;
+};
+
+export type AnalyticsMetadata = {
+  generatedAt: string;
+  dataThrough: string | null;
+  isPartial: boolean;
+  warnings: string[];
+  quality: {
+    ordersWithItemsPct?: number;
+    orders?: number;
+    ordersWithItems?: number;
+  };
+};
+
+export type KpiValue = {
+  value: number;
+  previousValue: number;
+  absoluteChange: number;
+  percentageChange: number | null;
+  trend: "up" | "down" | "stable";
+  isPositive: boolean;
+  definition: string;
+};
+
+export type ComparisonPeriod = {
+  currentFrom: string;
+  currentTo: string;
+  previousFrom: string;
+  previousTo: string;
+};
+
+export type OverviewResponse = {
+  kpis: Record<string, KpiValue>;
+  appliedFilters: AppliedFilters;
+  comparison?: ComparisonPeriod | null;
+  metadata: AnalyticsMetadata;
+};
+
+export type TimeseriesPoint = {
+  period: string;
+  revenue: number;
+  orders: number;
+  averageTicket: number;
+  customers: number;
+  items: number;
+  cancellations: number;
+  discounts: number;
+};
+
+export type TimeseriesResponse = {
+  items: TimeseriesPoint[];
+  previousItems: TimeseriesPoint[];
+  granularity: Granularity;
+  appliedFilters: AppliedFilters;
+  comparison?: ComparisonPeriod | null;
+  metadata: AnalyticsMetadata;
+};
+
+export type BreakdownsResponse = {
+  statuses: { status: string; orders: number; value: number }[];
+  orderValueBands: { band: string; orders: number; value: number }[];
+  productAbc: {
+    class: "A" | "B" | "C";
+    entities: number;
+    revenue: number;
+    revenueSharePct?: number;
+    entitySharePct?: number;
+  }[];
+  customerAbc: {
+    class: "A" | "B" | "C";
+    entities: number;
+    revenue: number;
+    revenueSharePct?: number;
+    entitySharePct?: number;
+  }[];
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+};
+
+export type ProductInsightsResponse = {
+  summary: {
+    productsWithSales: number;
+    totalRevenue: number;
+    totalQuantity: number;
+    productsFor80Pct: number;
+    productsFor95Pct: number;
+    top10RevenueSharePct: number;
+    top20RevenueSharePct: number;
+    averageRevenuePerSku: number;
+  };
+  productAbc: {
+    class: "A" | "B" | "C";
+    entities: number;
+    revenue: number;
+    revenueSharePct: number;
+    entitySharePct: number;
+  }[];
+  pareto: {
+    rank: number;
+    id: string;
+    code: string | null;
+    name: string;
+    revenue: number;
+    quantitySold: number;
+    revenueSharePct: number;
+    cumulativeSharePct: number;
+    abcClass: "A" | "B" | "C";
+  }[];
+  topByQuantity: {
+    rank: number;
+    id: string;
+    name: string;
+    quantitySold: number;
+    revenue: number;
+    quantitySharePct: number;
+  }[];
+  classificationMix: {
+    classification: string;
+    products: number;
+    sharePct: number;
+  }[];
+  quantityVsRevenue: {
+    name: string;
+    quantitySold: number;
+    revenue: number;
+    abcClass: "A" | "B" | "C";
+  }[];
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+};
+
+export type PageResponse<T> = {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  sort: string;
+  order: SortOrder;
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+  summary?: Record<string, unknown> | null;
+};
+
+export type OrderAnalyticsRow = {
+  id: string;
+  number: string;
+  issuedAt: string | null;
+  customerId: string | null;
+  customerName: string | null;
+  sellerId: string | null;
+  sellerName: string | null;
+  status: string;
+  grossTotal: number | null;
+  netTotal: number;
+  total: number;
+  discount: number;
+  itemCount: number | null;
+  skuCount: number | null;
+  city: string | null;
+  state: string | null;
+};
+
+export type OrderDetailResponse = {
+  order: OrderAnalyticsRow & {
+    orderTypeId?: string | null;
+    paymentConditionId?: string | null;
+    priceTableId?: string | null;
+    carrierId?: string | null;
+    commercialPolicyId?: string | null;
+  };
+  items: {
+    id: string | null;
+    position: number;
+    productId: string | null;
+    code: string | null;
+    name: string;
+    quantity: number;
+    unitPrice: number | null;
+    sourceUnitPrice: number;
+    discount: number;
+    total: number | null;
+    sourceTotal: number;
+    catalogUnitPrice?: number | null;
+    priceSource: "catalog" | "unavailable" | "mercos";
+  }[];
+  metadata: AnalyticsMetadata;
+};
+
+export type ProductAnalyticsRow = {
+  id: string;
+  code: string | null;
+  name: string;
+  categoryId: string | null;
+  active: boolean;
+  quantitySold: number;
+  orderCount: number;
+  revenue: number;
+  revenueShare: number;
+  cumulativeRevenueShare: number;
+  abcClass: "A" | "B" | "C" | null;
+  averagePrice: number;
+  listPrice: number | null;
+  minimumPrice: number | null;
+  stock: number;
+  stockValue: number;
+  averageDailyVelocity: number;
+  estimatedCoverageDays: number | null;
+  stockoutRisk: boolean;
+  excessStock: boolean;
+  lastSaleAt: string | null;
+  daysWithoutSale: number | null;
+  neverSold: boolean;
+  classification: string;
+};
+
+export type CustomerCohortMember = {
+  id: string;
+  name: string;
+  rank: number;
+  revenue: number;
+  orderCount: number;
+  averageMonthlyOrders: number;
+};
+
+export type CustomerCohortSummary = {
+  customerCount: number;
+  orderCount: number;
+  revenue: number;
+  revenueSharePct: number;
+  orderSharePct: number;
+  averageMonthlyOrders: number;
+  averageRevenuePerCustomer: number;
+  averageOrderValue: number;
+  members?: CustomerCohortMember[];
+  membersOmitted?: number;
+};
+
+export type CustomersPageSummary = {
+  periodMonths?: number;
+  totalRevenue?: number;
+  concentrationTop5Pct: number;
+  concentrationTop10Pct: number;
+  concentrationTop20Pct: number;
+  concentrationRestPct?: number;
+  top5?: CustomerCohortSummary;
+  top10?: CustomerCohortSummary;
+  top20?: CustomerCohortSummary;
+  ranks6to10?: CustomerCohortSummary;
+  ranks11to20?: CustomerCohortSummary;
+  rest?: CustomerCohortSummary;
+};
+
+export type CustomerAnalyticsRow = {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  segmentId: string | null;
+  active: boolean;
+  orderCount: number;
+  revenue: number;
+  revenueShare: number;
+  cumulativeRevenueShare: number;
+  abcClass: "A" | "B" | "C" | null;
+  averageTicket: number;
+  firstOrderAt: string | null;
+  lastOrderAt: string | null;
+  daysSinceLastOrder: number | null;
+  averageOrderIntervalDays: number | null;
+  recency: number | null;
+  frequency: number;
+  monetary: number;
+  rfm: {
+    recency: number;
+    frequency: number;
+    monetary: number;
+    score: number;
+    segment: string;
+  };
+};
+
+export type SellerAnalyticsRow = {
+  id: string;
+  name: string;
+  active: boolean;
+  orderCount: number;
+  revenue: number;
+  averageTicket: number;
+  customers: number;
+  newCustomers: number | null;
+  cancellations: number;
+  discountTotal: number;
+};
+
+export type ProductDetailResponse = {
+  product: ProductAnalyticsRow;
+  recentOrders: PageResponse<OrderAnalyticsRow>;
+  customers: PageResponse<CustomerAnalyticsRow>;
+  associations: AssociationsResponse;
+  metadata: AnalyticsMetadata;
+};
+
+export type CustomerDetailResponse = {
+  customer: CustomerAnalyticsRow;
+  orders: PageResponse<OrderAnalyticsRow>;
+  products: PageResponse<ProductAnalyticsRow>;
+  metadata: AnalyticsMetadata;
+};
+
+export type SellerDetailResponse = {
+  seller: SellerAnalyticsRow;
+  orders: PageResponse<OrderAnalyticsRow>;
+  customers: PageResponse<CustomerAnalyticsRow>;
+  products: PageResponse<ProductAnalyticsRow>;
+  metadata: AnalyticsMetadata;
+};
+
+export type RankingsResponse = {
+  products: PageResponse<ProductAnalyticsRow>;
+  customers: PageResponse<CustomerAnalyticsRow>;
+  sellers: PageResponse<SellerAnalyticsRow>;
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+};
+
+export type GeographyResponse = {
+  states: {
+    state: string;
+    customers: number;
+    orders: number;
+    revenue: number;
+  }[];
+  cities: {
+    state: string | null;
+    city: string;
+    customers: number;
+    orders: number;
+    revenue: number;
+  }[];
+  metadata: AnalyticsMetadata;
+};
+
+export type CohortsResponse = {
+  summary: {
+    customers: number;
+    repeatCustomers: number;
+    repeatRate: number;
+    month1RetainedCustomers: number;
+    month1EligibleCustomers: number;
+    month1RetentionRate: number | null;
+    totalRevenue: number;
+    realizedLtv: number;
+  };
+  retentionCurve: {
+    monthOffset: number;
+    retentionRate: number;
+    activeCustomers: number;
+    eligibleCustomers: number;
+    cohortCount: number;
+  }[];
+  ltvCurve: {
+    monthOffset: number;
+    ltv: number;
+    cumulativeRevenue: number;
+    eligibleCustomers: number;
+    cohortCount: number;
+  }[];
+  cohorts: {
+    cohort: string;
+    size: number;
+    totalRevenue: number;
+    realizedLtv: number;
+    retention: {
+      monthOffset: number;
+      customers: number;
+      rate: number;
+      revenue: number;
+      cumulativeRevenue: number;
+      cumulativeLtv: number;
+    }[];
+  }[];
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+};
+
+export type AssociationsResponse = {
+  items: {
+    productAId: string;
+    productAName: string;
+    productBId: string;
+    productBName: string;
+    ordersTogether: number;
+  }[];
+  metadata: AnalyticsMetadata;
+};
+
+export type PriceSavingsProduct = {
+  id: string;
+  code: string | null;
+  name: string;
+  previousAverageUnit: number;
+  currentAverageUnit: number;
+  unitDrop: number;
+  dropPct: number | null;
+  quantitySold: number;
+  currentRevenue: number;
+  savings: number;
+  currentOrders: number;
+  previousOrders: number;
+};
+
+export type PriceSavingsMatchedOrder = {
+  customerId: string;
+  customerName: string;
+  currentOrderId: string;
+  currentNumber: string;
+  currentIssuedAt: string | null;
+  currentTotal: number;
+  previousTotal: number;
+  savings: number;
+  savingsPct: number | null;
+  itemSavings: number;
+  skuCount: number;
+};
+
+export type PriceSavingsCustomer = {
+  id: string;
+  name: string;
+  matchedOrders: number;
+  previousTotal: number;
+  currentTotal: number;
+  savings: number;
+  savingsPct: number | null;
+  rank?: number;
+};
+
+export type PriceSavingsTier = {
+  key: string;
+  label: string;
+  rankFrom: number;
+  rankTo: number;
+  count: number;
+  orderCount: number;
+  previousTotal: number;
+  currentTotal: number;
+  savings: number;
+  savingsPct: number | null;
+  savingsSharePct: number | null;
+  avgDropPct: number | null;
+  truncated?: boolean;
+  members: PriceSavingsCustomer[];
+};
+
+export type PriceSavingsBucket = {
+  bucket: string;
+  skuCount: number;
+  quantity: number;
+  savings: number;
+  dropPct: number | null;
+  savingsSharePct: number | null;
+};
+
+export type PriceSavingsWeek = {
+  week: string;
+  from: string;
+  to: string;
+  previousTotal: number;
+  currentTotal: number;
+  savings: number;
+  dropPct: number | null;
+  orders: number;
+  skuCount: number;
+};
+
+export type PriceSavingsResponse = {
+  summary: {
+    droppedProductCount: number;
+    currentOrdersWithDroppedProducts: number;
+    productSavings: number;
+    productSavingsPct: number | null;
+    matchedPairCount: number;
+    matchedSavings: number;
+    matchedSavingsPct: number | null;
+    previousDroppedTotal?: number;
+    currentDroppedTotal?: number;
+    customersWithSavings: number;
+    currentWindowDays?: number;
+    previousWindowDays?: number;
+    simpleAvgDropPct?: number | null;
+    medianDropPct?: number | null;
+    qtyWeightedDropPct?: number | null;
+    valueWeightedDropPct?: number | null;
+    customerAvgDropPct?: number | null;
+    customerMedianDropPct?: number | null;
+    currentRevenue?: number;
+    currentOrderCount?: number;
+    droppedSkuRevenue?: number;
+    unchangedSkuRevenue?: number;
+    newSkuRevenue?: number;
+    droppedSkuRevenueSharePct?: number | null;
+    billImpactPct?: number | null;
+    top10CustomerSavingsSharePct?: number | null;
+    top20CustomerSavingsSharePct?: number | null;
+    top50CustomerSavingsSharePct?: number | null;
+    top10ProductSavingsSharePct?: number | null;
+    top20ProductSavingsSharePct?: number | null;
+    top50ProductSavingsSharePct?: number | null;
+  };
+  products: PriceSavingsProduct[];
+  matchedOrders: PriceSavingsMatchedOrder[];
+  customers: PriceSavingsCustomer[];
+  customerTiers?: PriceSavingsTier[];
+  productTiers?: PriceSavingsTier[];
+  dropBuckets?: PriceSavingsBucket[];
+  weekly?: PriceSavingsWeek[];
+  comparison?: ComparisonPeriod | null;
+  appliedFilters: AppliedFilters;
+  metadata: AnalyticsMetadata;
+};
+
+export type FilterOption = { id: string; label: string };
+export type FilterOptionsResponse = {
+  items: FilterOption[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  option: string;
+};
