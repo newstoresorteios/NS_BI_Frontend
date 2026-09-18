@@ -4,7 +4,7 @@ Painel de Business Intelligence da New Store, baseado no modelo XNaMai e
 conectado ao `NS_BI_Backend`.
 
 Inclui visão geral, pedidos, produtos, clientes, retenção e LTV, vendedores,
-estoque, análises geográficas, CRM, análise de varejo, qualidade de dados,
+estoque, análises geográficas, CRM, qualidade de dados,
 exportações e acompanhamento da sincronização Tray.
 
 ## Execução local

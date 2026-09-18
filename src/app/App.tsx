@@ -17,7 +17,6 @@ import { useAnalyticsFilters } from "../hooks/useAnalyticsFilters";
 import { DataQualityPage } from "../pages/DataQualityPage";
 import { HomeGate } from "../pages/HomeGate";
 import { LoginPage } from "../pages/LoginPage";
-import { RetailApp } from "../retail/RetailApp";
 import { AppearanceSelect } from "../theme/AppearanceSelect";
 import { lazyPage } from "./lazyPage";
 
@@ -98,9 +97,6 @@ export function App() {
   }
   if (location.pathname.startsWith("/crm")) {
     return <CrmApp />;
-  }
-  if (location.pathname.startsWith("/analise-varejo")) {
-    return <RetailApp />;
   }
   return <BiApp />;
 }
