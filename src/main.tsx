@@ -210,20 +210,18 @@ export function LegacyDashboard() {
     }
   }, [segmentFilter, tableSort]);
 
-  const runSync = useCallback(async (full = false, silent = false) => {
+  const runSync = useCallback(async (_full = false, silent = false) => {
     if (!api.configured || syncing) return;
     setSyncing(true);
     try {
-      if (!silent) notify(full ? "Primeira carga iniciada em background…" : "Sincronização iniciada…");
-      const states = await api.syncAndWait("all", full, (st) => setSyncStates(st));
+      if (!silent) notify("Sincronização incremental iniciada…");
+      const states = await api.syncAndWait("all", false, (st) => setSyncStates(st));
       const interrupted = states.some((s) => s.status === "interrupted" || s.status === "partial");
       if (!silent) {
         notify(
           interrupted
             ? "Sync pausada (serviço reiniciou). Clique Sincronizar de novo em 1–2 min para continuar."
-            : full
-              ? "Primeira carga concluída."
-              : "Dados sincronizados."
+            : "Dados sincronizados."
         );
       }
       await load();
@@ -461,9 +459,9 @@ export function LegacyDashboard() {
           <button
             className="secondary"
             disabled={syncing || !api.configured}
-            onClick={() => void runSync(true)}
+            onClick={() => void runSync(false)}
           >
-            ☁ {syncing ? "Carregando…" : "Primeira carga"}
+            ☁ {syncing ? "Carregando…" : "Sincronizar tudo"}
           </button>
           <button disabled={syncing || !api.configured} onClick={() => void runSync(false)}>
             ↻ {syncing ? "Sincronizando…" : "Sincronizar"}
@@ -507,8 +505,8 @@ export function LegacyDashboard() {
           )}
           {emptyBase && !syncing && !loading && !error && (
             <div className="banner">
-              Base ainda vazia. Use “Primeira carga” quando quiser importar da Tray — abrir a tela não dispara sync.
-              <button onClick={() => void runSync(true)}>Primeira carga</button>
+              Base ainda vazia. Use “Sincronizar tudo” para iniciar a importação incremental da Tray.
+              <button onClick={() => void runSync(false)}>Sincronizar tudo</button>
             </div>
           )}
 
@@ -705,7 +703,7 @@ export function LegacyDashboard() {
                       ? `${productRank[0][0]} lidera o ranking de produtos. Use Sincronizar para atualizar os dados da Tray.`
                       : "Dispare uma sincronização completa para popular o painel com dados de produção."}
                   </p>
-                  <button onClick={() => void runSync(true)}>Primeira carga →</button>
+                  <button onClick={() => void runSync(false)}>Sincronizar tudo →</button>
                 </div>
               </section>
             </>
@@ -1167,8 +1165,8 @@ export function LegacyDashboard() {
                 )}
               </div>
               <div className="sync-actions">
-                <button disabled={syncing} onClick={() => void runSync(true)}>
-                  Primeira carga (completa)
+                <button disabled={syncing} onClick={() => void runSync(false)}>
+                  Sincronizar tudo (incremental)
                 </button>
                 <button disabled={syncing} onClick={() => void runSync(false)}>
                   Sync incremental (só o novo)

@@ -287,9 +287,16 @@ export const api = {
     requestRetry<ProductMovers>(`/api/v1/intelligence/product-movers?days=${days}`),
   dataQuality: () =>
     requestRetry<DataQuality>(`/api/v1/data-quality`, undefined, 3),
-  sync: (resource = "all", full = false) =>
-    requestRetry<{ status: string; message?: string }>(
-      `/api/v1/sync/${resource}?full=${full ? "true" : "false"}`,
+  sync: (resource = "all", _full = false) =>
+    requestRetry<{
+      status: string;
+      message?: string;
+      resource?: string;
+      requestedResource?: string;
+      activeResource?: string | null;
+      mode?: string;
+    }>(
+      `/api/v1/sync/${resource}?full=false`,
       { method: "POST" },
       2
     ),
@@ -306,6 +313,11 @@ export const api = {
     opts?: { intervalMs?: number; maxMs?: number }
   ) => {
     const started = await api.sync(resource, full);
+    if (started.status === "running" && started.activeResource) {
+      throw new Error(
+        `Já existe uma sincronização de ${started.activeResource} em andamento. Interrompa-a antes de iniciar ${resource}.`
+      );
+    }
     const intervalMs = opts?.intervalMs ?? 8000;
     const maxMs = opts?.maxMs ?? 90 * 60 * 1000;
     const t0 = Date.now();

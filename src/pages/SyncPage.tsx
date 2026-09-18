@@ -29,13 +29,15 @@ export function SyncPage() {
     onMutate: ({ resource }) => {
       setFeedback(
         resource === "all"
-          ? "Solicitando a sincronização completa…"
+          ? "Solicitando a sincronização incremental de todos os dados…"
           : "Solicitando a atualização de pedidos e envios…"
       );
     },
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (data, variables) => {
       setFeedback(
-        variables.resource === "all"
+        data.status === "running"
+          ? `Não iniciada: já existe uma sincronização de ${data.activeResource || "outro recurso"} em andamento.`
+          : variables.resource === "all"
           ? "Sincronizar tudo foi iniciado. Acompanhe o recurso em andamento abaixo."
           : "Sincronização de pedidos e envios iniciada."
       );
@@ -67,8 +69,8 @@ export function SyncPage() {
           <div>
             <h2>Sincronização Tray</h2>
             <p>
-              A primeira carga completa percorre todos os dados disponíveis na integração.
-              Depois dela, use a sincronização incremental de pedidos. Se aparecer 429, espere
+              Toda sincronização continua do último ponto salvo, sem recarregar o que já foi concluído.
+              Pedidos são priorizados para manter os indicadores financeiros atualizados. Se aparecer 429, espere
               3–5 minutos e clique só em <strong>Sincronizar pedidos</strong>
               — não dispare “Sincronizar tudo” de novo enquanto a Tray
               estiver limitada.
@@ -94,12 +96,12 @@ export function SyncPage() {
               className="sync-action primary"
               disabled={running}
               aria-busy={activeResource === "all"}
-              onClick={() => sync.mutate({ resource: "all", full: true })}
+              onClick={() => sync.mutate({ resource: "all", full: false })}
             >
               {activeResource === "all" && <span className="button-spinner" aria-hidden="true" />}
               <span>
                 <strong>{activeResource === "all" ? "Iniciando tudo…" : "Sincronizar tudo"}</strong>
-                <small>Catálogo, clientes, logística e pedidos</small>
+                <small>Incremental: pedidos primeiro, depois os demais dados</small>
               </span>
             </button>
             <button
