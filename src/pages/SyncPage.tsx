@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { api } from "../api";
 import { QueryState } from "../components/feedback/QueryState";
 
@@ -23,7 +23,8 @@ export function SyncPage() {
       : false,
   });
   const sync = useMutation({
-    mutationFn: (resource: string) => api.sync(resource, false),
+    mutationFn: ({ resource, full }: { resource: string; full: boolean }) =>
+      api.sync(resource, full),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["sync-status"] }),
@@ -49,18 +50,27 @@ export function SyncPage() {
           <div>
             <h2>Sincronização Tray</h2>
             <p>
-              Execuções incrementais administrativas. Se aparecer 429, espere
+              A primeira carga completa percorre todos os dados disponíveis na integração.
+              Depois dela, use a sincronização incremental de pedidos. Se aparecer 429, espere
               3–5 minutos e clique só em <strong>Sincronizar pedidos</strong>
               — não dispare “Sincronizar tudo” de novo enquanto a Tray
               estiver limitada.
             </p>
           </div>
           <div className="table-actions">
-            <button type="button" disabled={running} onClick={() => sync.mutate("orders")}>
+            <button
+              type="button"
+              disabled={running}
+              onClick={() => sync.mutate({ resource: "orders", full: false })}
+            >
               Sincronizar pedidos
             </button>
-            <button type="button" disabled={running} onClick={() => sync.mutate("all")}>
-              Sincronizar tudo
+            <button
+              type="button"
+              disabled={running}
+              onClick={() => sync.mutate({ resource: "all", full: true })}
+            >
+              Primeira carga completa
             </button>
             <button
               type="button"
