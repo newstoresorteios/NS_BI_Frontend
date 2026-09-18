@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { authenticatedFetch } from "../auth/session";
 import type {
   AnalyticsFilters,
   AssociationsResponse,
@@ -497,7 +496,7 @@ async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), 60_000);
   try {
-    const response = await authenticatedFetch(`${API_URL}${path}`, {
+    const response = await fetch(`${API_URL}${path}`, {
       signal: controller.signal,
     });
     if (!response.ok) {
@@ -778,7 +777,7 @@ export const analyticsApi = {
     format: "csv" | "xlsx",
     filters: AnalyticsFilters
   ): Promise<{ blob: Blob; filename: string }> {
-    const response = await authenticatedFetch(`${API_URL}/api/v1/exports`, {
+    const response = await fetch(`${API_URL}/api/v1/exports`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ report, format, filters }),

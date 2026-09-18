@@ -15,8 +15,8 @@ copy .env.example .env
 npm run dev
 ```
 
-Configure `VITE_BI_API_URL` com a URL pública do backend. A autenticação usa
-cookie seguro; nenhuma chave do BI deve ser incluída no frontend.
+Configure `VITE_BI_API_URL` com a URL pública do backend. O BI é acessado
+diretamente, sem usuário ou senha.
 
 ## Produção
 

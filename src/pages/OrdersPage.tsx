@@ -9,7 +9,6 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { analyticsApi } from "../api/client";
-import { useAuth } from "../auth/AuthProvider";
 import { MetadataStatus, QueryState } from "../components/feedback/QueryState";
 import type { AnalyticsFilters, OrderAnalyticsRow } from "../types/analytics";
 
@@ -52,7 +51,6 @@ const SORT_MAP: Record<string, string> = {
 };
 
 export function OrdersPage({ filters }: { filters: AnalyticsFilters }) {
-  const { user } = useAuth();
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(50);
   const [search, setSearch] = useState("");
@@ -181,24 +179,20 @@ export function OrdersPage({ filters }: { filters: AnalyticsFilters }) {
                 ))}
               </div>
             </details>
-            {user?.role === "admin" && (
-              <>
-                <button
-                  type="button"
-                  disabled={exporting}
-                  onClick={() => void exportOrders("csv")}
-                >
-                  CSV
-                </button>
-                <button
-                  type="button"
-                  disabled={exporting}
-                  onClick={() => void exportOrders("xlsx")}
-                >
-                  XLSX
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={() => void exportOrders("csv")}
+            >
+              CSV
+            </button>
+            <button
+              type="button"
+              disabled={exporting}
+              onClick={() => void exportOrders("xlsx")}
+            >
+              XLSX
+            </button>
           </div>
         </div>
         {exportError && <div className="state-panel error">{exportError}</div>}

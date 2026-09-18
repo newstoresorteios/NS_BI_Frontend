@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { analyticsApi } from "../../api/client";
-import { useAuth } from "../../auth/AuthProvider";
 import type { AnalyticsFilters } from "../../types/analytics";
 
 export function ExportButtons({
@@ -10,11 +9,8 @@ export function ExportButtons({
   report: "orders" | "products" | "customers" | "sellers" | "inventory";
   filters: AnalyticsFilters;
 }) {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  if (user?.role !== "admin") return null;
-
   async function download(format: "csv" | "xlsx") {
     setLoading(true);
     setError("");

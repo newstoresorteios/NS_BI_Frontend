@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./app/App";
-import { AuthProvider } from "./auth/AuthProvider";
 import { AppearanceProvider } from "./theme/AppearanceProvider";
 import "./style.css";
 import "./app/app.css";
@@ -26,13 +25,11 @@ if (!root) throw new Error("Elemento raiz da aplicação não encontrado");
 createRoot(root).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AppearanceProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </AppearanceProvider>
-      </AuthProvider>
+      <AppearanceProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AppearanceProvider>
     </QueryClientProvider>
   </StrictMode>
 );

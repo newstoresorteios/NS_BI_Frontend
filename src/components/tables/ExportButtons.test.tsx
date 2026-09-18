@@ -7,10 +7,6 @@ const { exportReport } = vi.hoisted(() => ({ exportReport: vi.fn() }));
 vi.mock("../../api/client", () => ({
   analyticsApi: { exportReport },
 }));
-vi.mock("../../auth/AuthProvider", () => ({
-  useAuth: () => ({ user: { username: "admin", role: "admin" } }),
-}));
-
 import { ExportButtons } from "./ExportButtons";
 
 test("requests a complete filtered export from the backend", async () => {

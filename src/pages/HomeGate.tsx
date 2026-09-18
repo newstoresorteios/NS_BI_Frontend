@@ -8,7 +8,7 @@ export function HomeGate() {
         <span>NEW STORE</span>
         <h1>Escolha o ambiente</h1>
         <p>
-          O CRM e aberto para o time. O BI permanece restrito a administracao.
+          CRM e BI disponíveis para acesso direto pelo time.
         </p>
         <AppearanceSelect />
       </div>
@@ -20,9 +20,9 @@ export function HomeGate() {
           <Link to="/crm">Abrir CRM</Link>
         </article>
         <article>
-          <small>Acesso restrito</small>
+          <small>Acesso direto</small>
           <h2>Business Intelligence</h2>
-          <p>Indicadores, qualidade de dados e sincronizacao Tray. Exige usuario e senha.</p>
+          <p>Indicadores, qualidade de dados e sincronizacao Tray, sem login.</p>
           <Link to="/overview">Entrar no BI</Link>
         </article>
       </div>

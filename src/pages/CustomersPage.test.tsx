@@ -21,10 +21,6 @@ vi.mock("../api/client", () => ({
   },
 }));
 
-vi.mock("../auth/AuthProvider", () => ({
-  useAuth: () => ({ user: { username: "viewer", role: "viewer" } }),
-}));
-
 import { CustomersPage } from "./CustomersPage";
 
 function cohort(overrides: Record<string, unknown>) {

@@ -19,7 +19,7 @@ Object.defineProperty(window, "matchMedia", {
   }),
 });
 
-test("portal inicial separa CRM aberto e BI restrito", () => {
+test("portal inicial oferece CRM e BI sem login", () => {
   render(
     <AppearanceProvider>
       <MemoryRouter>

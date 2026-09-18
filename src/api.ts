@@ -1,5 +1,3 @@
-import { authenticatedFetch } from "./auth/session";
-
 const API_URL = (import.meta.env.VITE_BI_API_URL || "").replace(/\/$/, "");
 
 export type Dashboard = {
@@ -197,7 +195,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const ms = 25000;
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    const res = await authenticatedFetch(`${API_URL}${path}`, {
+    const res = await fetch(`${API_URL}${path}`, {
       ...init,
       signal: init?.signal || ctrl.signal,
       headers: init?.headers,

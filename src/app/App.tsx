@@ -9,14 +9,12 @@ import {
   useLocation,
 } from "react-router-dom";
 import { api } from "../api";
-import { useAuth } from "../auth/AuthProvider";
 import { GlobalFilterBar } from "../components/filters/GlobalFilterBar";
 import { QueryState } from "../components/feedback/QueryState";
 import { CrmApp } from "../crm/CrmApp";
 import { useAnalyticsFilters } from "../hooks/useAnalyticsFilters";
 import { DataQualityPage } from "../pages/DataQualityPage";
 import { HomeGate } from "../pages/HomeGate";
-import { LoginPage } from "../pages/LoginPage";
 import { AppearanceSelect } from "../theme/AppearanceSelect";
 import { lazyPage } from "./lazyPage";
 
@@ -60,7 +58,6 @@ const navigation: {
   path: string;
   label: string;
   icon: string;
-  adminOnly?: boolean;
 }[] = [
   { path: "/overview", label: "Visão geral", icon: "⌂" },
   { path: "/orders", label: "Pedidos", icon: "▣" },
@@ -71,8 +68,8 @@ const navigation: {
   { path: "/inventory", label: "Estoque", icon: "▤" },
   { path: "/insights", label: "Geografia e mix", icon: "◫" },
   { path: "/custom-views", label: "Visões personalizadas", icon: "✧" },
-  { path: "/data-quality", label: "Qualidade dos dados", icon: "✓", adminOnly: true },
-  { path: "/sync", label: "Sincronização", icon: "↻", adminOnly: true },
+  { path: "/data-quality", label: "Qualidade dos dados", icon: "✓" },
+  { path: "/sync", label: "Sincronização", icon: "↻" },
 ];
 
 function QualityRoute() {
@@ -103,11 +100,9 @@ export function App() {
 
 function BiApp() {
   const location = useLocation();
-  const { user, loading, signOut } = useAuth();
   const syncStatus = useQuery({
     queryKey: ["sync-status"],
     queryFn: api.syncStatus,
-    enabled: Boolean(user),
     refetchInterval: (query) =>
       query.state.data?.some((item) => item.status === "running") ? 5_000 : false,
   });
@@ -129,9 +124,6 @@ function BiApp() {
         ? "Todo o histórico"
         : filters.period.toUpperCase();
 
-  if (loading) return <QueryState loading error={null} />;
-  if (!user) return <LoginPage />;
-
   if (location.pathname === "/legacy") {
     return (
       <Suspense fallback={<QueryState loading error={null} />}>
@@ -151,9 +143,7 @@ function BiApp() {
           <span>Business Intelligence</span>
         </div>
         <nav aria-label="Navegação principal">
-          {navigation
-            .filter((item) => !item.adminOnly || user.role === "admin")
-            .map((item) => (
+          {navigation.map((item) => (
             <NavLink
               key={item.path}
               to={{ pathname: item.path, search: location.search }}
@@ -162,7 +152,7 @@ function BiApp() {
               <i>{item.icon}</i>
               {item.label}
             </NavLink>
-            ))}
+          ))}
         </nav>
       </aside>
       <main id="main-content" className="app-content">
@@ -177,13 +167,7 @@ function BiApp() {
           </div>
           <div className="user-menu">
             <AppearanceSelect />
-            <span>
-              {user.username} · {user.role}
-            </span>
             <Link to="/">Início</Link>
-            <button type="button" onClick={() => void signOut()}>
-              Sair
-            </button>
           </div>
         </header>
         {isAnalyticsRoute && (
@@ -248,26 +232,8 @@ function BiApp() {
               <Route path="/inventory" element={<InventoryPage filters={filters} />} />
               <Route path="/insights" element={<InsightsPage filters={filters} />} />
               <Route path="/custom-views" element={<CustomViewsPage />} />
-              <Route
-                path="/data-quality"
-                element={
-                  user.role === "admin" ? (
-                    <QualityRoute />
-                  ) : (
-                    <Navigate to="/overview" replace />
-                  )
-                }
-              />
-              <Route
-                path="/sync"
-                element={
-                  user.role === "admin" ? (
-                    <SyncPage />
-                  ) : (
-                    <Navigate to="/overview" replace />
-                  )
-                }
-              />
+              <Route path="/data-quality" element={<QualityRoute />} />
+              <Route path="/sync" element={<SyncPage />} />
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
           </Suspense>
